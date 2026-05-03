@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchLoans, returnLoan, getUser } from '../../services/api';
 import styles from '../../styles/loans.module.css';
 import Modal from '../../components/Modal';
+import { getItemImage } from '../../utils/itemImages';
 
 export default function TeacherLoansPage() {
   const [loanList, setLoanList] = useState<any[]>([]);
@@ -31,6 +32,18 @@ export default function TeacherLoansPage() {
     const dueDate = new Date(dueDateStr);
     const today = new Date();
     return dueDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
   };
 
   const handleReturnClick = (loan: any) => {
@@ -76,7 +89,7 @@ export default function TeacherLoansPage() {
       </div>
 
       {/* Loan Cards */}
-      <div style={{ display: 'grid', gap: '20px' }}>
+      <div className={styles.loanGrid}>
         {loanList.map((loan) => {
           const overdue = isDueToday(loan.due_date);
           const returned = loan.status === 'DIKEMBALIKAN';
@@ -85,17 +98,14 @@ export default function TeacherLoansPage() {
             <div key={loan.id} className={styles.loanCard}>
               <div className={styles.loanCardContent}>
                 <div className={styles.loanImage}>
-                  <div className={styles.loanImagePlaceholder}>
-                    <i className={`fas fa-${loan.item_name.toLowerCase().includes('projector') ? 'video' : 'laptop'}`}></i>
-                    <span>ASET</span>
-                  </div>
+                  <img src={getItemImage({ name: loan.item_name, image_url: loan.item_image, category_name: 'Elektronik' })} alt={loan.item_name} />
                 </div>
 
                 <div className={styles.loanDetails}>
                   <div className={styles.loanItemName}>{loan.item_name}</div>
                   <div className={styles.loanDate}>
                     <i className="fas fa-calendar-alt"></i>
-                    Dipinjam: {loan.borrow_date}
+                    Dipinjam: {formatDate(loan.borrow_date)}
                   </div>
                 </div>
 
@@ -111,7 +121,7 @@ export default function TeacherLoansPage() {
                     ) : (
                       <i className="fas fa-clock"></i>
                     )}
-                    {loan.due_date}
+                    {formatDate(loan.due_date)}
                   </div>
                   {overdue && !returned && <div className={styles.dueDateExtra}>(Hari Ini)</div>}
                 </div>

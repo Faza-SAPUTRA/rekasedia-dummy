@@ -20,14 +20,18 @@
   line-height: 1.5;
 }
 
+.loanGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 18px;
+}
+
 .loanCard {
   background: var(--white);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 20px;
+  padding: 18px;
   transition: all var(--transition-normal);
-  cursor: pointer;
 }
 
 .loanCard:hover {
@@ -38,13 +42,13 @@
 .loanCardContent {
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 .loanImage {
-  width: 140px;
-  height: 100px;
+  width: 88px;
+  height: 88px;
   border-radius: var(--radius-md);
   overflow: hidden;
   flex-shrink: 0;
@@ -80,14 +84,16 @@
 
 .loanDetails {
   flex: 1;
+  min-width: 0;
 }
 
 .loanItemName {
   font-family: var(--font-heading);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--dark-text);
   margin-bottom: 6px;
+  line-height: 1.35;
 }
 
 .loanDate {
@@ -106,10 +112,10 @@
 /* --- Due Date Badge --- */
 .dueDateBadge {
   text-align: center;
-  padding: 12px 16px;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 1.5px solid;
-  min-width: 160px;
+  min-width: 132px;
   flex-shrink: 0;
 }
 
@@ -145,7 +151,7 @@
   justify-content: center;
   gap: 6px;
   font-family: var(--font-heading);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -167,7 +173,7 @@
 /* --- Return Button --- */
 .returnBtn {
   width: 100%;
-  padding: 12px;
+  padding: 10px 12px;
   background: var(--white);
   color: var(--sage-green);
   border: 1.5px solid var(--sage-green);
@@ -330,6 +336,21 @@
   font-weight: 600;
   width: 100%;
   justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .loanGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .loanCardContent {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .dueDateBadge {
+    width: 100%;
+  }
 }
 
 @keyframes fadeIn {
