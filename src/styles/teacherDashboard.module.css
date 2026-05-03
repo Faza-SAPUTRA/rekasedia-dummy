@@ -184,6 +184,12 @@
   justify-content: center;
   gap: 8px;
   transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.actionBtn:hover {
+  color: var(--white);
+  text-decoration: none;
 }
 
 .actionBtn i {
@@ -198,6 +204,7 @@
 
 .btnRequest:hover {
   background: var(--sage-green-hover);
+  color: var(--white);
 }
 
 .btnRequest:active {
@@ -212,6 +219,7 @@
 
 .btnBorrow:hover {
   background: #1a1a1a;
+  color: var(--white);
 }
 
 .btnBorrow:active {
