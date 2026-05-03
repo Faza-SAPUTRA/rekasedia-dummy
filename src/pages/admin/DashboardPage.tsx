@@ -55,7 +55,12 @@ export default function DashboardPage() {
     if (!confirmModal) return;
     try {
       await updateRequestStatus(confirmModal.id, confirmModal.type);
-      setReqs(prev => prev.map(r => (r.id === confirmModal.id ? { ...r, status: confirmModal.type } : r)));
+      const [statsData, reqsData] = await Promise.all([
+        fetchStats(),
+        fetchRequests()
+      ]);
+      setStats(statsData);
+      setReqs(reqsData.slice(0, 5));
       closeModal();
     } catch (err) {
       console.error(err);
@@ -67,13 +72,15 @@ export default function DashboardPage() {
     return <div style={{ padding: '24px' }}>Memuat data dashboard...</div>;
   }
 
-  const { pendingRequests, criticalStockCount, criticalItems } = stats;
+  const { pendingRequests, todayRequests, criticalStockCount, criticalItems } = stats;
+  const approvedRequests = reqs.filter((req) => req.status === 'APPROVED').length;
+  const pendingRecentRequests = reqs.filter((req) => req.status === 'PENDING').length;
 
   const chartData = {
-    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
+    labels: ['Hari Ini', 'Menunggu', 'Disetujui', 'Stok Kritis'],
     datasets: [
       {
-        data: [18, 25, 15, 30, 22],
+        data: [todayRequests, pendingRequests, approvedRequests, criticalStockCount],
         backgroundColor: ['#B8C9B8', '#8A9E8A', '#B8C9B8', '#6B8F71', '#8A9E8A'],
         borderRadius: 6,
         barThickness: 32,
@@ -108,8 +115,8 @@ export default function DashboardPage() {
               <i className="fas fa-calendar-check"></i>
             </div>
           </div>
-          <div className={styles.statValue}>24</div>
-          <div className={styles.statTrend}>↗ +12% dari kemarin</div>
+          <div className={styles.statValue}>{todayRequests}</div>
+          <div className={styles.statTrend}>Tersambung dari data dummy</div>
         </div>
 
         <div className={`${styles.statCard} ${styles.alert}`}>
@@ -142,7 +149,7 @@ export default function DashboardPage() {
       {/* Recent Requests */}
       <div className={styles.sectionHeader}>
         <h3 className={styles.sectionTitle}>Permintaan Terbaru</h3>
-        <a href="#" className={styles.sectionLink}>Lihat Semua</a>
+        <a href="/admin/requests" className={styles.sectionLink}>Lihat Semua</a>
       </div>
 
       <div className={styles.tableWrapper}>
@@ -234,7 +241,7 @@ export default function DashboardPage() {
         <div className={styles.activityCard}>
           <div className={styles.activityHeader}>
             <h3>Ringkasan Aktivitas</h3>
-            <p>Penggunaan inventaris minggu ini</p>
+            <p>{pendingRecentRequests} permintaan terbaru masih menunggu validasi</p>
           </div>
           <div className={styles.chartContainer}>
             <Bar data={chartData} options={chartOptions} />

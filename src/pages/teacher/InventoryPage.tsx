@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import styles from '../../styles/inventory.module.css';
 import CartDrawer, { type CartItem } from '../../components/CartDrawer';
 import { fetchItems, fetchCategories, createRequest, getUser } from '../../services/api';
+import { getItemImage } from '../../utils/itemImages';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -242,10 +243,7 @@ export default function TeacherInventoryPage() {
             >
               <div className={`${styles.productImage} ${bgClass}`}>
                 {isLow && <span className={styles.lowStockBadge}>STOK TIPIS</span>}
-                <div className={styles.imagePlaceholder}>
-                  <i className="fas fa-box-open"></i>
-                  <span>{item.category_name}</span>
-                </div>
+                <img src={getItemImage(item)} alt={item.name} className={styles.productPhoto} />
               </div>
               <div className={styles.productInfo}>
                 <div className={styles.productName}>{item.name}</div>

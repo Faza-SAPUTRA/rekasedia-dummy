@@ -8,6 +8,44 @@ import * as mockData from '../data/mockData';
 
 const API_BASE = '/api';
 const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
+const MOCK_ITEMS_KEY = 'mock_items';
+const MOCK_REQUESTS_KEY = 'mock_requests';
+
+function readMockItems() {
+  const saved = localStorage.getItem(MOCK_ITEMS_KEY);
+  return saved ? JSON.parse(saved) : mockData.items;
+}
+
+function writeMockItems(items: any[]) {
+  localStorage.setItem(MOCK_ITEMS_KEY, JSON.stringify(items));
+}
+
+function readMockRequests() {
+  const saved = localStorage.getItem(MOCK_REQUESTS_KEY);
+  const baseRequests = saved ? JSON.parse(saved) : mockData.requests;
+
+  return baseRequests.map((request: any) => {
+    if (request.requester_id) return request;
+
+    const matchedUser = mockData.users.find((user) => user.full_name === request.requester_name);
+    return {
+      ...request,
+      requester_id: matchedUser?.id || 6,
+    };
+  });
+}
+
+function writeMockRequests(requests: any[]) {
+  localStorage.setItem(MOCK_REQUESTS_KEY, JSON.stringify(requests));
+}
+
+function formatMockDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function isToday(dateValue: string) {
+  return formatMockDate(new Date(dateValue)) === formatMockDate(new Date());
+}
 
 // --- Helper: get token dari localStorage ---
 function getToken(): string | null {
@@ -75,7 +113,7 @@ export async function register(data: { full_name: string; email: string; passwor
 
 // --- Items ---
 export async function fetchItems() {
-  if (USE_MOCK) return mockData.items;
+  if (USE_MOCK) return readMockItems();
 
   const res = await fetch(`${API_BASE}/items`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data barang');
@@ -93,7 +131,10 @@ export async function fetchCategories() {
 export async function addItem(data: any) {
   if (USE_MOCK) {
     console.log('[MOCK] Add item:', data);
-    return { id: Date.now(), ...data, message: 'Barang berhasil ditambahkan (MOCK)' };
+    const items = readMockItems();
+    const newItem = { id: Date.now(), image_url: null, is_loanable: false, ...data };
+    writeMockItems([newItem, ...items]);
+    return { ...newItem, message: 'Barang berhasil ditambahkan (MOCK)' };
   }
   const res = await fetch(`${API_BASE}/items`, {
     method: 'POST',
@@ -107,6 +148,8 @@ export async function addItem(data: any) {
 export async function updateItem(id: number, data: any) {
   if (USE_MOCK) {
     console.log('[MOCK] Update item:', id, data);
+    const items = readMockItems();
+    writeMockItems(items.map((item: any) => (item.id === id ? { ...item, ...data } : item)));
     return { message: 'Barang berhasil diperbarui (MOCK)' };
   }
   const res = await fetch(`${API_BASE}/items/${id}`, {
@@ -121,6 +164,7 @@ export async function updateItem(id: number, data: any) {
 export async function deleteItem(id: number) {
   if (USE_MOCK) {
     console.log('[MOCK] Delete item:', id);
+    writeMockItems(readMockItems().filter((item: any) => item.id !== id));
     return { message: 'Barang berhasil dihapus (MOCK)' };
   }
   const res = await fetch(`${API_BASE}/items/${id}`, {
@@ -134,8 +178,7 @@ export async function deleteItem(id: number) {
 // --- Requests ---
 export async function fetchRequests() {
   if (USE_MOCK) {
-    const saved = localStorage.getItem('mock_requests');
-    return saved ? JSON.parse(saved) : mockData.requests;
+    return readMockRequests();
   }
 
   const res = await fetch(`${API_BASE}/requests`, { headers: authHeaders() });
@@ -146,25 +189,31 @@ export async function fetchRequests() {
 export async function createRequest(items: { item_id: number; quantity: number }[], requester_id: number) {
   if (USE_MOCK) {
     console.log('[MOCK] Create request:', items);
-    const existingRaw = localStorage.getItem('mock_requests');
-    const existing = existingRaw ? JSON.parse(existingRaw) : [...mockData.requests];
+    const existing = readMockRequests();
+    const inventoryItems = readMockItems();
+    const requester = mockData.users.find((user) => user.id === requester_id);
+    const today = formatMockDate(new Date());
     
-    // Add new (simplified mock)
-    const newReq = {
-        id: Date.now(),
-        req_code: `REQ-MOCK-${Date.now().toString().slice(-4)}`,
-        item_id: items[0].item_id,
-        item_name: mockData.items.find(i => i.id === items[0].item_id)?.name || 'Unknown Item',
-        requester_name: 'User Mock',
-        requester_role: 'guru',
-        quantity: items[0].quantity,
-        request_date: new Date().toLocaleDateString(),
-        status: 'PENDING',
-        priority: 'REGULER'
-    };
+    const newRequests = items.map((requestedItem, index) => {
+      const item = inventoryItems.find((inventoryItem: any) => inventoryItem.id === requestedItem.item_id);
+      const timestamp = Date.now() + index;
+
+      return {
+          id: timestamp,
+          req_code: `REQ-MOCK-${timestamp.toString().slice(-4)}`,
+          item_id: requestedItem.item_id,
+          item_name: item?.name || 'Unknown Item',
+          requester_id,
+          requester_name: requester?.full_name || 'User Mock',
+          requester_role: requester?.department || requester?.role || 'Guru',
+          quantity: requestedItem.quantity,
+          request_date: today,
+          status: 'PENDING',
+          priority: item?.stock <= 5 ? 'URGENT' : 'REGULER'
+      };
+    });
     
-    const updated = [newReq, ...existing];
-    localStorage.setItem('mock_requests', JSON.stringify(updated));
+    writeMockRequests([...newRequests, ...existing]);
     return { message: 'Permintaan berhasil (MOCK)' };
   }
 
@@ -179,10 +228,25 @@ export async function createRequest(items: { item_id: number; quantity: number }
 
 export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJECTED', reviewed_by?: number) {
   if (USE_MOCK) {
-    const existingRaw = localStorage.getItem('mock_requests');
-    let existing = existingRaw ? JSON.parse(existingRaw) : [...mockData.requests];
-    existing = existing.map((r: any) => r.id === id ? { ...r, status } : r);
-    localStorage.setItem('mock_requests', JSON.stringify(existing));
+    const existing = readMockRequests();
+    const targetRequest = existing.find((request: any) => request.id === id);
+
+    const updatedRequests = existing.map((request: any) => 
+      request.id === id
+        ? { ...request, status, reviewed_by, reviewed_at: formatMockDate(new Date()) }
+        : request
+    );
+    writeMockRequests(updatedRequests);
+
+    if (status === 'APPROVED' && targetRequest && targetRequest.status !== 'APPROVED') {
+      const updatedItems = readMockItems().map((item: any) => 
+        item.id === targetRequest.item_id
+          ? { ...item, stock: Math.max(0, item.stock - targetRequest.quantity) }
+          : item
+      );
+      writeMockItems(updatedItems);
+    }
+
     return { message: 'Status diupdate (MOCK)' };
   }
 
@@ -197,7 +261,16 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
 
 // --- Loans ---
 export async function fetchLoans() {
-  if (USE_MOCK) return mockData.loans;
+  if (USE_MOCK) {
+    const items = readMockItems();
+    return mockData.loans.map((loan) => {
+      const item = items.find((inventoryItem: any) => inventoryItem.id === loan.item_id);
+      return {
+        ...loan,
+        item_image: item?.image_url || loan.item_image,
+      };
+    });
+  }
 
   const res = await fetch(`${API_BASE}/loans`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Gagal mengambil data peminjaman');
@@ -228,18 +301,24 @@ export interface DashboardStats {
   totalItems: number;
   activeLoans: number;
   pendingRequests: number;
+  todayRequests: number;
   criticalStockCount: number;
   criticalItems: Array<{ id: number; name: string; stock: number; category_name: string; unit: string }>;
 }
 
 export async function fetchStats(): Promise<DashboardStats> {
   if (USE_MOCK) {
+    const items = readMockItems();
+    const requests = readMockRequests();
+    const criticalItems = items.filter((item: any) => item.stock <= 3 && !item.is_loanable);
+
     return {
-      totalItems: mockData.getTotalItemsCount(),
-      activeLoans: mockData.loans.length,
-      pendingRequests: mockData.requests.filter(r => r.status === 'PENDING').length,
-      criticalStockCount: mockData.getCriticalStockItems().length,
-      criticalItems: mockData.getCriticalStockItems().map(i => ({
+      totalItems: items.reduce((sum: number, item: any) => sum + item.stock, 0),
+      activeLoans: mockData.loans.filter((loan) => loan.status === 'DIPINJAM').length,
+      pendingRequests: requests.filter((request: any) => request.status === 'PENDING').length,
+      todayRequests: requests.filter((request: any) => isToday(request.request_date)).length,
+      criticalStockCount: criticalItems.length,
+      criticalItems: criticalItems.map((i: any) => ({
         id: i.id,
         name: i.name,
         stock: i.stock,
@@ -258,20 +337,24 @@ export async function fetchStats(): Promise<DashboardStats> {
 export interface TeacherStats {
   totalItemsRequested: number;
   activeLoansCount: number;
+  pendingRequestsCount: number;
   historyCount: number;
 }
 
 export async function fetchTeacherStats(userId: number): Promise<TeacherStats> {
   if (USE_MOCK) {
     const userLoans = mockData.loans.filter(l => l.borrower_id === userId);
+    const userRequests = readMockRequests().filter((request: any) => request.requester_id === userId);
+
     return {
-      totalItemsRequested: 42, // Mock total consumable items ever requested
+      totalItemsRequested: userRequests.reduce((sum: number, request: any) => sum + request.quantity, 0),
       activeLoansCount: userLoans.filter(l => l.status === 'DIPINJAM').length,
-      historyCount: 15
+      pendingRequestsCount: userRequests.filter((request: any) => request.status === 'PENDING').length,
+      historyCount: userRequests.length + userLoans.length
     };
   }
   // In real backend, this would be a filtered endpoint
-  return { totalItemsRequested: 0, activeLoansCount: 0, historyCount: 0 };
+  return { totalItemsRequested: 0, activeLoansCount: 0, pendingRequestsCount: 0, historyCount: 0 };
 }
 
 // --- Session helpers ---

@@ -1,7 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import styles from '../../styles/adminInventory.module.css';
-import { fetchItems, fetchCategories } from '../../services/api';
+import { fetchItems, fetchCategories, addItem, updateItem, deleteItem } from '../../services/api';
 import Modal from '../../components/Modal';
+import CustomSelect from '../../components/CustomSelect';
+import { getItemImage } from '../../utils/itemImages';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -127,19 +129,21 @@ export default function InventoryPage() {
     setTimeout(() => setShowSuccess(false), 2500);
   };
 
-  const handleSaveItem = () => {
+  const handleSaveItem = async () => {
     if (activeModal === 'add') {
-        const newItem = { id: Date.now(), ...formData };
+        const newItem = await addItem(formData);
         setItems([newItem, ...items]);
         triggerSuccess('Barang berhasil ditambahkan ke sistem.');
     } else if (activeModal === 'edit') {
+        await updateItem(selectedItem.id, formData);
         setItems(items.map(i => i.id === selectedItem.id ? { ...formData } : i));
         triggerSuccess('Data barang berhasil diperbarui.');
     }
     closeModal();
   };
 
-  const handleDeleteItem = () => {
+  const handleDeleteItem = async () => {
+    await deleteItem(selectedItem.id);
     setItems(items.filter(i => i.id !== selectedItem.id));
     triggerSuccess(`Barang "${selectedItem.name}" berhasil dihapus.`);
     closeModal();
@@ -164,34 +168,40 @@ export default function InventoryPage() {
               <p>Pastikan informasi barang yang dimasukkan sudah sesuai dengan fisik inventaris.</p>
               
               <div className={styles.modalFormGrid}>
-                <div className={styles.formGroup}>
+                <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
                   <label>Nama Barang</label>
                   <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Kertas HVS A4" />
                 </div>
-                <div className={styles.formGroup}>
+                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
                   <label>SKU Barang</label>
                   <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} placeholder="SKU-2023-XXX" />
                 </div>
-                <div className={styles.formGroup}>
+                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
                   <label>Kategori</label>
-                  <select value={formData.category_name} onChange={e => setFormData({...formData, category_name: e.target.value})}>
-                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={formData.category_name}
+                    onChange={val => setFormData({...formData, category_name: val})}
+                    options={categories.map(c => ({ value: c.name, label: c.name }))}
+                  />
                 </div>
-                <div className={styles.formGroup}>
-                  <label>Satuan</label>
-                  <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, Set, dsb." />
-                </div>
-                <div className={styles.formGroup}>
+                <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                   <label>Stok Awal</label>
                   <input type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} />
                 </div>
-                <div className={styles.formGroup}>
+                <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
+                  <label>Satuan</label>
+                  <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, dsb." />
+                </div>
+                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
                   <label>Dapat Dipinjam?</label>
-                  <select>
-                    <option value="false">Tidak (Habis Pakai)</option>
-                    <option value="true">Ya (Aset/Pinjaman)</option>
-                  </select>
+                  <CustomSelect
+                    value="false"
+                    onChange={() => {}}
+                    options={[
+                      { value: 'false', label: 'Tidak (Habis Pakai)' },
+                      { value: 'true', label: 'Ya (Aset/Pinjaman)' }
+                    ]}
+                  />
                 </div>
               </div>
               
@@ -231,9 +241,11 @@ export default function InventoryPage() {
               <div className={styles.filterModalGrid}>
                 <div className={styles.formGroup}>
                   <label>Urutkan Berdasarkan</label>
-                  <select value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
-                    {sortOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
+                  <CustomSelect 
+                    value={sortOrder} 
+                    onChange={setSortOrder} 
+                    options={sortOptions} 
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Status Ketersediaan</label>
@@ -295,33 +307,23 @@ export default function InventoryPage() {
 
         <div className={styles.filterRows}>
           <div className={styles.filterGroup}>
-            <div style={{ position: 'relative' }}>
-                <select 
-                  className={styles.customSelect}
-                  value={activeCategory}
-                  onChange={(e) => {
-                    setActiveCategory(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-                <i className="fas fa-chevron-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px', color: 'var(--light-text)' }}></i>
-            </div>
+            <CustomSelect
+              value={activeCategory}
+              onChange={(val) => {
+                setActiveCategory(val);
+                setCurrentPage(1);
+              }}
+              options={categoryOptions}
+            />
 
-            <div style={{ position: 'relative' }}>
-                <select 
-                  className={styles.customSelect}
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-                <i className="fas fa-chevron-down" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px', color: 'var(--light-text)' }}></i>
-            </div>
+            <CustomSelect
+              value={statusFilter}
+              onChange={(val) => {
+                setStatusFilter(val);
+                setCurrentPage(1);
+              }}
+              options={statusOptions}
+            />
           </div>
 
           <div className={styles.advancedFilter} onClick={() => setActiveModal('filter')}>
@@ -353,7 +355,7 @@ export default function InventoryPage() {
                 <tr key={item.id} className={styles.itemRow}>
                   <td>
                     <div className={styles.itemThumb}>
-                      <i className="fas fa-box" style={{ color: 'rgba(255,255,255,0.2)', fontSize: '20px' }}></i>
+                      <img src={getItemImage(item)} alt={item.name} />
                     </div>
                   </td>
                   <td>
