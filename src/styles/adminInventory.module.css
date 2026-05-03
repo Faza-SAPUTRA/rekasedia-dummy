@@ -465,6 +465,34 @@
   font-weight: 600;
 }
 
+@media (max-width: 640px) {
+  .itemModalShell {
+    max-width: calc(100vw - 32px);
+  }
+
+  .modalForm {
+    max-height: min(86vh, 760px);
+  }
+
+  .modalScrollArea {
+    padding-right: 6px;
+    margin-right: 0;
+  }
+
+  .modalFormGrid {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+
+  .modalFormGrid .formGroup {
+    grid-column: 1 / -1 !important;
+  }
+
+  .modalActionBar {
+    gap: 10px;
+  }
+}
+
 .modalFooter {
   display: flex;
   justify-content: flex-end;
