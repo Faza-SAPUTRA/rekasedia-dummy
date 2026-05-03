@@ -16,9 +16,23 @@
   color: var(--gray-text);
   margin-bottom: 4px;
   font-family: var(--font-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.breadcrumb span {
+.breadcrumb a {
+  color: var(--gray-text);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb a:hover {
+  color: var(--sage-green);
+  text-decoration: none;
+}
+
+.breadcrumb span:last-child {
   color: var(--sage-green);
   font-weight: 600;
 }

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, type ChangeEvent, type DragEvent } from 'react';
+import { Link } from 'react-router-dom';
 import styles from '../../styles/adminInventory.module.css';
 import { fetchItems, fetchCategories, addItem, updateItem, deleteItem } from '../../services/api';
 import Modal from '../../components/Modal';
@@ -379,7 +380,9 @@ export default function InventoryPage() {
       <div className={styles.inventoryHeader}>
         <div>
             <div className={styles.breadcrumb}>
-                Dashboard &rsaquo; <span>Manajemen Inventaris</span>
+                <Link to="/admin">Dashboard</Link>
+                <span aria-hidden="true">&rsaquo;</span>
+                <span>Manajemen Inventaris</span>
             </div>
             <h1 className={styles.inventoryTitle}>Manajemen Inventaris Barang</h1>
         </div>
