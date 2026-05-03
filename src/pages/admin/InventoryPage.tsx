@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, type ChangeEvent, type DragEvent } from 'react';
 import styles from '../../styles/adminInventory.module.css';
 import { fetchItems, fetchCategories, addItem, updateItem, deleteItem } from '../../services/api';
 import Modal from '../../components/Modal';
@@ -6,8 +6,32 @@ import CustomSelect from '../../components/CustomSelect';
 import { getItemImage } from '../../utils/itemImages';
 
 const ITEMS_PER_PAGE = 10;
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
 type ModalType = 'add' | 'edit' | 'delete' | 'filter' | null;
+type InventoryFormData = {
+  name: string;
+  sku: string;
+  category_id: number;
+  category_name: string;
+  stock: number;
+  unit: string;
+  description: string;
+  image_url: string | null;
+  is_loanable: boolean;
+};
+
+const emptyFormData = (): InventoryFormData => ({
+  name: '',
+  sku: `SKU-${new Date().getFullYear()}-${Math.floor(Math.random()*900)+100}`,
+  category_id: 1,
+  category_name: 'ATK',
+  stock: 0,
+  unit: 'Unit',
+  description: '',
+  image_url: null,
+  is_loanable: false
+});
 
 export default function InventoryPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -26,17 +50,10 @@ export default function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [imageError, setImageError] = useState('');
 
   // Form State (for Add/Edit)
-  const [formData, setFormData] = useState({
-    name: '',
-    sku: '',
-    category_id: 1,
-    category_name: 'ATK',
-    stock: 0,
-    unit: 'Unit',
-    description: ''
-  });
+  const [formData, setFormData] = useState<InventoryFormData>(emptyFormData);
 
   useEffect(() => {
     const loadData = async () => {
@@ -103,13 +120,25 @@ export default function InventoryPage() {
 
   // --- Handlers ---
   const openAddModal = () => {
-    setFormData({ name: '', sku: `SKU-${new Date().getFullYear()}-${Math.floor(Math.random()*900)+100}`, category_id: 1, category_name: 'ATK', stock: 0, unit: 'Unit', description: '' });
+    setFormData(emptyFormData());
+    setImageError('');
     setActiveModal('add');
   };
 
   const openEditModal = (item: any) => {
     setSelectedItem(item);
-    setFormData({ ...item });
+    setFormData({
+      name: item.name || '',
+      sku: item.sku || '',
+      category_id: item.category_id || 1,
+      category_name: item.category_name || 'ATK',
+      stock: item.stock || 0,
+      unit: item.unit || 'Unit',
+      description: item.description || '',
+      image_url: item.image_url || null,
+      is_loanable: Boolean(item.is_loanable),
+    });
+    setImageError('');
     setActiveModal('edit');
   };
 
@@ -121,12 +150,44 @@ export default function InventoryPage() {
   const closeModal = () => {
     setActiveModal(null);
     setSelectedItem(null);
+    setImageError('');
   };
 
   const triggerSuccess = (msg: string) => {
     setSuccessMessage(msg);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2500);
+  };
+
+  const handleImageFile = (file?: File) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setImageError('File harus berupa gambar.');
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError('Ukuran gambar maksimal 2MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData(prev => ({ ...prev, image_url: String(reader.result) }));
+      setImageError('');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageInput = (event: ChangeEvent<HTMLInputElement>) => {
+    handleImageFile(event.target.files?.[0]);
+    event.target.value = '';
+  };
+
+  const handleImageDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    handleImageFile(event.dataTransfer.files?.[0]);
   };
 
   const handleSaveItem = async () => {
@@ -136,7 +197,7 @@ export default function InventoryPage() {
         triggerSuccess('Barang berhasil ditambahkan ke sistem.');
     } else if (activeModal === 'edit') {
         await updateItem(selectedItem.id, formData);
-        setItems(items.map(i => i.id === selectedItem.id ? { ...formData } : i));
+        setItems(items.map(i => i.id === selectedItem.id ? { ...i, ...formData } : i));
         triggerSuccess('Data barang berhasil diperbarui.');
     }
     closeModal();
@@ -195,13 +256,45 @@ export default function InventoryPage() {
                 <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
                   <label>Dapat Dipinjam?</label>
                   <CustomSelect
-                    value="false"
-                    onChange={() => {}}
+                    value={String(formData.is_loanable)}
+                    onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
                     options={[
                       { value: 'false', label: 'Tidak (Habis Pakai)' },
                       { value: 'true', label: 'Ya (Aset/Pinjaman)' }
                     ]}
                   />
+                </div>
+                <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
+                  <label>Foto Barang</label>
+                  <label
+                    className={`${styles.imageDropzone} ${formData.image_url ? styles.hasImage : ''}`}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={handleImageDrop}
+                  >
+                    {formData.image_url ? (
+                      <>
+                        <img src={formData.image_url} alt="Preview foto barang" className={styles.imagePreview} />
+                        <span className={styles.imageUploadText}>Klik atau drop gambar lain untuk mengganti foto.</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-cloud-upload-alt"></i>
+                        <span className={styles.imageUploadText}>Drag and drop gambar ke sini, atau klik untuk pilih file.</span>
+                        <span className={styles.imageUploadHint}>Format gambar, maksimal 2MB.</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" onChange={handleImageInput} />
+                  </label>
+                  {formData.image_url && (
+                    <button
+                      type="button"
+                      className={styles.removeImageBtn}
+                      onClick={() => setFormData({...formData, image_url: null})}
+                    >
+                      Hapus gambar
+                    </button>
+                  )}
+                  {imageError && <div className={styles.imageError}>{imageError}</div>}
                 </div>
               </div>
               
