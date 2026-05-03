@@ -80,14 +80,9 @@
   font-size: 14px;
 }
 
-.sortDropdown select {
-  border: none;
-  background: transparent;
-  outline: none;
-  color: inherit;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
+.sortSelect {
+  width: 220px;
+  min-width: 220px;
 }
 
 .productGrid {

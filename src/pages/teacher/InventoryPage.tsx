@@ -3,6 +3,7 @@ import styles from '../../styles/inventory.module.css';
 import CartDrawer, { type CartItem } from '../../components/CartDrawer';
 import { fetchItems, fetchCategories, createRequest, getUser } from '../../services/api';
 import { getItemImage } from '../../utils/itemImages';
+import CustomSelect from '../../components/CustomSelect';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -205,20 +206,21 @@ export default function TeacherInventoryPage() {
         </div>
         <div className={styles.sortDropdown}>
           <i className="fas fa-sliders-h"></i>
-          <select 
+          <CustomSelect
             value={sortOrder} 
-            onChange={(e) => {
-              setSortOrder(e.target.value);
+            onChange={(value) => {
+              setSortOrder(value);
               setCurrentPage(1);
             }}
-            style={{ border: 'none', background: 'transparent', outline: 'none', color: 'inherit', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}
-          >
-            <option value="Terpopuler">Urutkan: Terpopuler</option>
-            <option value="A-Z">Nama A-Z</option>
-            <option value="Z-A">Nama Z-A</option>
-            <option value="Stok Terbanyak">Stok Terbanyak</option>
-            <option value="Stok Terdikit">Stok Sedikit</option>
-          </select>
+            options={[
+              { value: 'Terpopuler', label: 'Urutkan: Terpopuler' },
+              { value: 'A-Z', label: 'Nama A-Z' },
+              { value: 'Z-A', label: 'Nama Z-A' },
+              { value: 'Stok Terbanyak', label: 'Stok Terbanyak' },
+              { value: 'Stok Terdikit', label: 'Stok Sedikit' },
+            ]}
+            className={styles.sortSelect}
+          />
         </div>
       </div>
 
