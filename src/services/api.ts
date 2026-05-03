@@ -11,17 +11,23 @@ const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
 const MOCK_ITEMS_KEY = 'mock_items';
 const MOCK_REQUESTS_KEY = 'mock_requests';
 
+function getMockStorage() {
+  localStorage.removeItem(MOCK_ITEMS_KEY);
+  localStorage.removeItem(MOCK_REQUESTS_KEY);
+  return sessionStorage;
+}
+
 function readMockItems() {
-  const saved = localStorage.getItem(MOCK_ITEMS_KEY);
+  const saved = getMockStorage().getItem(MOCK_ITEMS_KEY);
   return saved ? JSON.parse(saved) : mockData.items;
 }
 
 function writeMockItems(items: any[]) {
-  localStorage.setItem(MOCK_ITEMS_KEY, JSON.stringify(items));
+  getMockStorage().setItem(MOCK_ITEMS_KEY, JSON.stringify(items));
 }
 
 function readMockRequests() {
-  const saved = localStorage.getItem(MOCK_REQUESTS_KEY);
+  const saved = getMockStorage().getItem(MOCK_REQUESTS_KEY);
   const baseRequests = saved ? JSON.parse(saved) : mockData.requests;
 
   return baseRequests.map((request: any) => {
@@ -42,7 +48,7 @@ function readMockRequests() {
 }
 
 function writeMockRequests(requests: any[]) {
-  localStorage.setItem(MOCK_REQUESTS_KEY, JSON.stringify(requests));
+  getMockStorage().setItem(MOCK_REQUESTS_KEY, JSON.stringify(requests));
 }
 
 function formatMockDate(date: Date) {
