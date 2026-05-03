@@ -2,6 +2,11 @@
   position: relative;
   width: 100%;
   min-width: 180px;
+  z-index: 20;
+}
+
+.selectContainer:has(.selectTrigger.open) {
+  z-index: 2000;
 }
 
 .selectTrigger {
@@ -50,15 +55,17 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
-  z-index: 100;
+  z-index: 2000;
   animation: fadeInDown var(--transition-fast) forwards;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dropdownInner {
   max-height: 250px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 8px;
+  border-radius: inherit;
 }
 
 .dropdownItem {
