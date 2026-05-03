@@ -49,13 +49,9 @@
 .brandIcon {
   width: 32px;
   height: 32px;
-  background-color: var(--sage-green);
   border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--white);
-  font-size: 1rem;
+  display: block;
+  object-fit: cover;
 }
 
 .brandName {
