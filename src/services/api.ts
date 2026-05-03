@@ -201,7 +201,7 @@ export async function addItem(data: any) {
   if (USE_MOCK) {
     console.log('[MOCK] Add item:', data);
     const items = readMockItems();
-    const newItem = { id: Date.now(), image_url: null, is_loanable: false, ...data };
+    const newItem = { id: Date.now(), image_url: null, is_loanable: false, ...data, stock: Math.max(0, Number(data.stock) || 0) };
     writeMockItems([newItem, ...items]);
     return { ...newItem, message: 'Barang berhasil ditambahkan (MOCK)' };
   }
@@ -218,7 +218,8 @@ export async function updateItem(id: number, data: any) {
   if (USE_MOCK) {
     console.log('[MOCK] Update item:', id, data);
     const items = readMockItems();
-    writeMockItems(items.map((item: any) => (item.id === id ? { ...item, ...data } : item)));
+    const normalizedData = { ...data, stock: Math.max(0, Number(data.stock) || 0) };
+    writeMockItems(items.map((item: any) => (item.id === id ? { ...item, ...normalizedData } : item)));
     return { message: 'Barang berhasil diperbarui (MOCK)' };
   }
   const res = await fetch(`${API_BASE}/items/${id}`, {

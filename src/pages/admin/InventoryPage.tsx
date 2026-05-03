@@ -190,6 +190,10 @@ export default function InventoryPage() {
     handleImageFile(event.dataTransfer.files?.[0]);
   };
 
+  const handleStockChange = (value: string) => {
+    setFormData({...formData, stock: Math.max(0, parseInt(value) || 0)});
+  };
+
   const handleSaveItem = async () => {
     if (activeModal === 'add') {
         const newItem = await addItem(formData);
@@ -248,7 +252,7 @@ export default function InventoryPage() {
                   </div>
                   <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                     <label>Stok Awal</label>
-                    <input type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} />
+                    <input type="number" min="0" value={formData.stock} onChange={e => handleStockChange(e.target.value)} />
                   </div>
                   <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
                     <label>Satuan</label>
