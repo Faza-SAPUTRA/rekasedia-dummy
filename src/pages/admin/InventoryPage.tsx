@@ -300,7 +300,7 @@ export default function InventoryPage() {
                 </div>
               </div>
               
-              <div className={styles.modalActionBar}>
+              <div className={`globalModalBtns ${styles.modalActionBar}`}>
                 <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
                 <button className="globalModalBtnConfirm" onClick={handleSaveItem}>Simpan Perubahan</button>
               </div>

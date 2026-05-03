@@ -302,16 +302,17 @@
   display: flex;
   flex-direction: column;
   max-height: min(82vh, 760px);
+  overflow: hidden;
 }
 
 .modalScrollArea {
   overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 8px;
+  max-width: 100%;
 }
 
 .modalActionBar {
-  display: flex;
-  gap: 16px;
   padding-top: 20px;
   margin-top: 20px;
   border-top: 1px solid var(--cream-dark);
