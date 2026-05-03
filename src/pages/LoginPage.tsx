@@ -137,9 +137,9 @@ const LoginPage: React.FC = () => {
                         <input type="checkbox" id="rememberMe" />
                         <label htmlFor="rememberMe">Ingat Saya</label>
                     </div>
-                    <a href="#" className={styles.forgotLink}>
+                    <Link to="/forgot-password" className={styles.forgotLink}>
                         Lupa Password?
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Submit */}
