@@ -4,6 +4,34 @@ RekaSedia adalah aplikasi inventaris sekolah untuk membantu admin Sarpras dan gu
 
 Project ini sedang difokuskan untuk kebutuhan demo dan testing dengan data dummy. Jadi aplikasi bisa langsung dicoba tanpa setup database atau backend dulu.
 
+## Tampilan Aplikasi
+
+Beberapa tampilan berikut dipilih karena mewakili alur utama RekaSedia: user masuk, guru mengajukan barang, lalu admin memantau dan memproses permintaan.
+
+### Login
+
+Halaman awal untuk masuk sebagai admin atau guru. Di mode dummy, login bisa memakai alias `admin` atau `guru`.
+
+![Halaman login RekaSedia](docs/images/login.png)
+
+### Dashboard Admin
+
+Admin bisa melihat kondisi inventaris secara cepat: permintaan terbaru, stok kritis, dan ringkasan aktivitas.
+
+![Dashboard admin RekaSedia](docs/images/admin-dashboard.png)
+
+### Katalog Guru dan Keranjang
+
+Guru memilih barang dari katalog, memasukkannya ke keranjang, lalu mengirim permintaan untuk divalidasi admin.
+
+![Katalog inventaris guru dengan keranjang](docs/images/teacher-inventory-cart.png)
+
+### Status Pesanan Guru
+
+Setelah permintaan dikirim, guru bisa memantau apakah pesanan masih menunggu validasi, disetujui, atau ditolak.
+
+![Halaman pesanan guru](docs/images/teacher-requests.png)
+
 ## Yang Bisa Dicoba
 
 Ada dua peran utama di aplikasi ini:
