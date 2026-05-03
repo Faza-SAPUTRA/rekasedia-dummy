@@ -11,11 +11,15 @@ const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
 const MOCK_ITEMS_KEY = 'mock_items';
 const MOCK_REQUESTS_KEY = 'mock_requests';
 const MOCK_LOANS_KEY = 'mock_loans';
+const MOCK_PENDING_USERS_KEY = 'mock_pending_users';
+const MOCK_APPROVED_USERS_KEY = 'mock_approved_users';
 
 function getMockStorage() {
   localStorage.removeItem(MOCK_ITEMS_KEY);
   localStorage.removeItem(MOCK_REQUESTS_KEY);
   localStorage.removeItem(MOCK_LOANS_KEY);
+  localStorage.removeItem(MOCK_PENDING_USERS_KEY);
+  localStorage.removeItem(MOCK_APPROVED_USERS_KEY);
   return sessionStorage;
 }
 
@@ -40,7 +44,7 @@ function readMockRequests() {
       };
     }
 
-    const matchedUser = mockData.users.find((user) => user.full_name === request.requester_name);
+    const matchedUser = [...mockData.users, ...readApprovedUsers()].find((user) => user.full_name === request.requester_name);
     return {
       ...request,
       requester_id: matchedUser?.id || 6,
@@ -60,6 +64,24 @@ function readMockLoans() {
 
 function writeMockLoans(loans: any[]) {
   getMockStorage().setItem(MOCK_LOANS_KEY, JSON.stringify(loans));
+}
+
+function readPendingUsers() {
+  const saved = getMockStorage().getItem(MOCK_PENDING_USERS_KEY);
+  return saved ? JSON.parse(saved) : [];
+}
+
+function writePendingUsers(users: any[]) {
+  getMockStorage().setItem(MOCK_PENDING_USERS_KEY, JSON.stringify(users));
+}
+
+function readApprovedUsers() {
+  const saved = getMockStorage().getItem(MOCK_APPROVED_USERS_KEY);
+  return saved ? JSON.parse(saved) : [];
+}
+
+function writeApprovedUsers(users: any[]) {
+  getMockStorage().setItem(MOCK_APPROVED_USERS_KEY, JSON.stringify(users));
 }
 
 function formatMockDate(date: Date) {
@@ -132,6 +154,16 @@ export interface LoginResponse {
   user: { id: number; full_name: string; email: string; role: string; department: string };
 }
 
+export interface PendingUser {
+  id: number;
+  full_name: string;
+  email: string;
+  role: 'guru';
+  department: string;
+  request_date: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
   if (USE_MOCK) {
     console.log('[MOCK] Login attempt:', email);
@@ -141,7 +173,16 @@ export async function login(email: string, password: string): Promise<LoginRespo
     if (email.toLowerCase() === 'admin') targetEmail = 'admin@rekasedia.sch.id';
     if (email.toLowerCase() === 'guru') targetEmail = 'sarah.putri@rekasedia.sch.id';
 
-    const user = mockData.users.find(u => u.email === targetEmail) || mockData.users[0];
+    const pendingUser = readPendingUsers().find((u: PendingUser) => u.email === targetEmail && u.status === 'PENDING');
+    if (pendingUser) {
+      throw new Error('Akun Anda masih menunggu persetujuan admin.');
+    }
+
+    const approvedUser = readApprovedUsers().find((u: PendingUser) => u.email === targetEmail && u.status === 'APPROVED');
+    const user = approvedUser || mockData.users.find(u => u.email === targetEmail);
+    if (!user) {
+      throw new Error('Akun tidak ditemukan atau belum disetujui admin.');
+    }
     return {
       token: 'mock-jwt-token-12345',
       user: { ...user }
@@ -162,9 +203,29 @@ export async function login(email: string, password: string): Promise<LoginRespo
 
 export async function register(data: { full_name: string; email: string; password: string; role?: string; department?: string }): Promise<LoginResponse> {
   if (USE_MOCK) {
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const existingBaseUser = mockData.users.find((u) => u.email.toLowerCase() === normalizedEmail);
+    const existingApprovedUser = readApprovedUsers().find((u: PendingUser) => u.email.toLowerCase() === normalizedEmail);
+    const existingPendingUser = readPendingUsers().find((u: PendingUser) => u.email.toLowerCase() === normalizedEmail && u.status === 'PENDING');
+
+    if (existingBaseUser || existingApprovedUser || existingPendingUser) {
+      throw new Error('Email sudah terdaftar atau sedang menunggu persetujuan.');
+    }
+
+    const newUser: PendingUser = {
+      id: Date.now(),
+      full_name: data.full_name,
+      email: normalizedEmail,
+      role: 'guru',
+      department: data.department || 'Guru',
+      request_date: formatMockDate(new Date()),
+      status: 'PENDING'
+    };
+    writePendingUsers([newUser, ...readPendingUsers()]);
+
     return {
       token: 'mock-jwt-token-new',
-      user: { id: Date.now(), full_name: data.full_name, email: data.email, role: (data.role as any) || 'guru', department: data.department || 'Umum' }
+      user: newUser
     };
   }
 
@@ -178,6 +239,31 @@ export async function register(data: { full_name: string; email: string; passwor
     throw new Error(err.error || 'Registrasi gagal');
   }
   return res.json();
+}
+
+export async function fetchPendingUsers(): Promise<PendingUser[]> {
+  if (USE_MOCK) {
+    return readPendingUsers().filter((user: PendingUser) => user.status === 'PENDING');
+  }
+  return [];
+}
+
+export async function updateUserApproval(id: number, status: 'APPROVED' | 'REJECTED') {
+  if (USE_MOCK) {
+    const pendingUsers = readPendingUsers();
+    const targetUser = pendingUsers.find((user: PendingUser) => user.id === id);
+    const updatedPendingUsers = pendingUsers
+      .map((user: PendingUser) => user.id === id ? { ...user, status } : user)
+      .filter((user: PendingUser) => user.status === 'PENDING');
+    writePendingUsers(updatedPendingUsers);
+
+    if (status === 'APPROVED' && targetUser) {
+      writeApprovedUsers([{ ...targetUser, status: 'APPROVED' }, ...readApprovedUsers()]);
+    }
+
+    return { message: `Akun ${status === 'APPROVED' ? 'disetujui' : 'ditolak'} (MOCK)` };
+  }
+  return { message: 'OK' };
 }
 
 // --- Items ---
@@ -261,7 +347,7 @@ export async function createRequest(items: { item_id: number; quantity: number }
     console.log('[MOCK] Create request:', items);
     const existing = readMockRequests();
     const inventoryItems = readMockItems();
-    const requester = mockData.users.find((user) => user.id === requester_id);
+    const requester = [...mockData.users, ...readApprovedUsers()].find((user) => user.id === requester_id);
     const today = formatMockDate(new Date());
     
     const newRequests = items.map((requestedItem, index) => {
