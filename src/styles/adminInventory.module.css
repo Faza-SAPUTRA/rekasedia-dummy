@@ -308,7 +308,8 @@
 .modalScrollArea {
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 8px;
+  padding-right: 18px;
+  margin-right: -18px;
   max-width: 100%;
 }
 
