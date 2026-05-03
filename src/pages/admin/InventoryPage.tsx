@@ -222,83 +222,85 @@ export default function InventoryPage() {
           {/* Add / Edit Modal */}
           {(activeModal === 'add' || activeModal === 'edit') && (
             <div className={styles.modalForm}>
-              <div className="globalModalIcon" style={{ margin: '0 0 16px 0', width: '48px', height: '48px', fontSize: '20px' }}>
-                <i className={`fas fa-${activeModal === 'add' ? 'plus' : 'edit'}`}></i>
-              </div>
-              <h3>{activeModal === 'add' ? 'Tambah Barang Baru' : 'Edit Data Barang'}</h3>
-              <p>Pastikan informasi barang yang dimasukkan sudah sesuai dengan fisik inventaris.</p>
-              
-              <div className={styles.modalFormGrid}>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
-                  <label>Nama Barang</label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Kertas HVS A4" />
+              <div className={styles.modalScrollArea}>
+                <div className="globalModalIcon" style={{ margin: '0 0 16px 0', width: '48px', height: '48px', fontSize: '20px' }}>
+                  <i className={`fas fa-${activeModal === 'add' ? 'plus' : 'edit'}`}></i>
                 </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
-                  <label>SKU Barang</label>
-                  <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} placeholder="SKU-2023-XXX" />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
-                  <label>Kategori</label>
-                  <CustomSelect
-                    value={formData.category_name}
-                    onChange={val => setFormData({...formData, category_name: val})}
-                    options={categories.map(c => ({ value: c.name, label: c.name }))}
-                  />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
-                  <label>Stok Awal</label>
-                  <input type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
-                  <label>Satuan</label>
-                  <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, dsb." />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
-                  <label>Dapat Dipinjam?</label>
-                  <CustomSelect
-                    value={String(formData.is_loanable)}
-                    onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
-                    options={[
-                      { value: 'false', label: 'Tidak (Habis Pakai)' },
-                      { value: 'true', label: 'Ya (Aset/Pinjaman)' }
-                    ]}
-                  />
-                </div>
-                <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
-                  <label>Foto Barang</label>
-                  <label
-                    className={`${styles.imageDropzone} ${formData.image_url ? styles.hasImage : ''}`}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={handleImageDrop}
-                  >
-                    {formData.image_url ? (
-                      <>
-                        <img src={formData.image_url} alt="Preview foto barang" className={styles.imagePreview} />
-                        <span className={styles.imageUploadText}>Klik atau drop gambar lain untuk mengganti foto.</span>
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-cloud-upload-alt"></i>
-                        <span className={styles.imageUploadText}>Drag and drop gambar ke sini, atau klik untuk pilih file.</span>
-                        <span className={styles.imageUploadHint}>Format gambar, maksimal 2MB.</span>
-                      </>
-                    )}
-                    <input type="file" accept="image/*" onChange={handleImageInput} />
-                  </label>
-                  {formData.image_url && (
-                    <button
-                      type="button"
-                      className={styles.removeImageBtn}
-                      onClick={() => setFormData({...formData, image_url: null})}
+                <h3>{activeModal === 'add' ? 'Tambah Barang Baru' : 'Edit Data Barang'}</h3>
+                <p>Pastikan informasi barang yang dimasukkan sudah sesuai dengan fisik inventaris.</p>
+                
+                <div className={styles.modalFormGrid}>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
+                    <label>Nama Barang</label>
+                    <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Kertas HVS A4" />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
+                    <label>SKU Barang</label>
+                    <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} placeholder="SKU-2023-XXX" />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
+                    <label>Kategori</label>
+                    <CustomSelect
+                      value={formData.category_name}
+                      onChange={val => setFormData({...formData, category_name: val})}
+                      options={categories.map(c => ({ value: c.name, label: c.name }))}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
+                    <label>Stok Awal</label>
+                    <input type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}>
+                    <label>Satuan</label>
+                    <input type="text" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="Pcs, Rim, dsb." />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 6' }}>
+                    <label>Dapat Dipinjam?</label>
+                    <CustomSelect
+                      value={String(formData.is_loanable)}
+                      onChange={val => setFormData({...formData, is_loanable: val === 'true'})}
+                      options={[
+                        { value: 'false', label: 'Tidak (Habis Pakai)' },
+                        { value: 'true', label: 'Ya (Aset/Pinjaman)' }
+                      ]}
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}>
+                    <label>Foto Barang</label>
+                    <label
+                      className={`${styles.imageDropzone} ${formData.image_url ? styles.hasImage : ''}`}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={handleImageDrop}
                     >
-                      Hapus gambar
-                    </button>
-                  )}
-                  {imageError && <div className={styles.imageError}>{imageError}</div>}
+                      {formData.image_url ? (
+                        <>
+                          <img src={formData.image_url} alt="Preview foto barang" className={styles.imagePreview} />
+                          <span className={styles.imageUploadText}>Klik atau drop gambar lain untuk mengganti foto.</span>
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-cloud-upload-alt"></i>
+                          <span className={styles.imageUploadText}>Drag and drop gambar ke sini, atau klik untuk pilih file.</span>
+                          <span className={styles.imageUploadHint}>Format gambar, maksimal 2MB.</span>
+                        </>
+                      )}
+                      <input type="file" accept="image/*" onChange={handleImageInput} />
+                    </label>
+                    {formData.image_url && (
+                      <button
+                        type="button"
+                        className={styles.removeImageBtn}
+                        onClick={() => setFormData({...formData, image_url: null})}
+                      >
+                        Hapus gambar
+                      </button>
+                    )}
+                    {imageError && <div className={styles.imageError}>{imageError}</div>}
+                  </div>
                 </div>
               </div>
               
-              <div className="globalModalBtns" style={{ marginTop: '32px' }}>
+              <div className={styles.modalActionBar}>
                 <button className="globalModalBtnCancel" onClick={closeModal}>Batal</button>
                 <button className="globalModalBtnConfirm" onClick={handleSaveItem}>Simpan Perubahan</button>
               </div>
