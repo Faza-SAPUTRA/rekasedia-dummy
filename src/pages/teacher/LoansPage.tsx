@@ -29,21 +29,50 @@ export default function TeacherLoansPage() {
   }, []);
 
   const isDueToday = (dueDateStr: string) => {
-    const dueDate = new Date(dueDateStr);
+    const dueDate = parseDisplayDate(dueDateStr);
     const today = new Date();
+    if (!dueDate) return false;
     return dueDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
   };
 
+  const parseDisplayDate = (dateString: string) => {
+    const parsed = new Date(dateString);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+
+    const match = dateString.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+    if (!match) return null;
+
+    const months: Record<string, number> = {
+      jan: 0, januari: 0,
+      feb: 1, februari: 1,
+      mar: 2, maret: 2,
+      apr: 3, april: 3,
+      mei: 4,
+      jun: 5, juni: 5,
+      jul: 6, juli: 6,
+      agu: 7, agustus: 7,
+      sep: 8, september: 8,
+      okt: 9, oktober: 9,
+      nov: 10, november: 10,
+      des: 11, desember: 11,
+    };
+
+    const [, day, monthName, year] = match;
+    const month = months[monthName.toLowerCase()];
+    if (month === undefined) return null;
+
+    return new Date(Number(year), month, Number(day));
+  };
+
   const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('id-ID', {
+    const parsed = parseDisplayDate(dateString);
+    if (!parsed) return dateString;
+
+    return parsed.toLocaleDateString('id-ID', {
         day: 'numeric',
-        month: 'long',
+        month: 'short',
         year: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
+    });
   };
 
   const handleReturnClick = (loan: any) => {

@@ -22,7 +22,7 @@
 
 .loanGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
   gap: 18px;
 }
 
@@ -42,13 +42,13 @@
 .loanCardContent {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 14px;
 }
 
 .loanImage {
-  width: 88px;
-  height: 88px;
+  width: 96px;
+  height: 96px;
   border-radius: var(--radius-md);
   overflow: hidden;
   flex-shrink: 0;
@@ -94,6 +94,7 @@
   color: var(--dark-text);
   margin-bottom: 6px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .loanDate {
@@ -115,7 +116,7 @@
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 1.5px solid;
-  min-width: 132px;
+  min-width: 150px;
   flex-shrink: 0;
 }
 
@@ -186,6 +187,7 @@
   justify-content: center;
   gap: 8px;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .returnBtn:hover {
