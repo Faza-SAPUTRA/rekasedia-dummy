@@ -297,6 +297,20 @@
 
 /* --- Modal Content Specifics --- */
 
+.itemModalShell,
+.smallModalShell {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.itemModalShell {
+  max-width: 760px;
+}
+
+.smallModalShell {
+  max-width: 420px;
+}
+
 .modalForm {
   text-align: left;
   display: flex;
@@ -308,9 +322,24 @@
 .modalScrollArea {
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 18px;
-  margin-right: -18px;
+  padding-right: 14px;
+  margin-right: -8px;
   max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(47, 53, 50, 0.28) transparent;
+}
+
+.modalScrollArea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modalScrollArea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modalScrollArea::-webkit-scrollbar-thumb {
+  background-color: rgba(47, 53, 50, 0.28);
+  border-radius: 999px;
 }
 
 .modalActionBar {
@@ -324,12 +353,13 @@
 .modalFormGrid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 20px;
+  column-gap: 20px;
+  row-gap: 18px;
   margin-top: 24px;
 }
 
 .formGroup {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .formGroup label {
@@ -362,7 +392,7 @@
 }
 
 .imageDropzone {
-  min-height: 160px;
+  min-height: 140px;
   border: 1.5px dashed var(--sage-green);
   border-radius: var(--radius-md);
   background: var(--badge-green-bg);
@@ -393,14 +423,14 @@
 }
 
 .imageDropzone.hasImage {
-  min-height: 220px;
+  min-height: 190px;
   padding: 10px;
   background: var(--cream);
 }
 
 .imagePreview {
   width: 100%;
-  height: 160px;
+  height: 140px;
   border-radius: var(--radius-sm);
   object-fit: cover;
   display: block;

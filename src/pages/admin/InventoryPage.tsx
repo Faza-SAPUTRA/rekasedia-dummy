@@ -214,7 +214,7 @@ export default function InventoryPage() {
   const renderModals = () => {
     return (
       <Modal isOpen={activeModal !== null} onClose={closeModal}>
-        <div style={{ maxWidth: activeModal === 'add' || activeModal === 'edit' ? '600px' : '420px', width: '100%', margin: '0 auto' }}>
+        <div className={activeModal === 'add' || activeModal === 'edit' ? styles.itemModalShell : styles.smallModalShell}>
           <button className="globalModalClose" onClick={closeModal} title="Tutup">
             <i className="fas fa-times"></i>
           </button>
