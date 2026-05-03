@@ -168,10 +168,14 @@ export async function login(email: string, password: string): Promise<LoginRespo
   if (USE_MOCK) {
     console.log('[MOCK] Login attempt:', email);
     
-    // Support simple aliases for easier demos
-    let targetEmail = email;
-    if (email.toLowerCase() === 'admin') targetEmail = 'admin@rekasedia.sch.id';
-    if (email.toLowerCase() === 'guru') targetEmail = 'sarah.putri@rekasedia.sch.id';
+    const loginValue = email.trim().toLowerCase();
+    let targetEmail = loginValue;
+    if (/^\d{8,20}$/.test(loginValue)) {
+      const matchedByNip = [...mockData.users, ...readApprovedUsers()]
+        .find((u: any) => String(u.department || '').includes(loginValue));
+      if (!matchedByNip) throw new Error('NIP tidak ditemukan atau belum disetujui admin.');
+      targetEmail = matchedByNip.email;
+    }
 
     const pendingUser = readPendingUsers().find((u: PendingUser) => u.email === targetEmail && u.status === 'PENDING');
     if (pendingUser) {

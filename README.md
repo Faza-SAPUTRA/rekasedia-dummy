@@ -10,7 +10,7 @@ Beberapa tampilan berikut dipilih karena mewakili alur utama RekaSedia: user mas
 
 ### Login
 
-Halaman awal untuk masuk sebagai admin atau guru. Di mode dummy, login bisa memakai alias `admin` atau `guru`.
+Halaman awal untuk masuk sebagai admin atau guru. Di mode dummy, gunakan email demo yang tersedia.
 
 ![Halaman login RekaSedia](docs/images/login.png)
 
@@ -69,12 +69,10 @@ Ini sengaja dibuat begitu supaya testing terasa ringan dan gampang diulang.
 
 ## Akun Demo
 
-Di mock mode, password bebas. Yang penting pakai email atau alias berikut:
+Di mock mode, password bebas. Login tetap harus memakai format email atau NIP angka.
 
 | Login | Masuk sebagai |
 | --- | --- |
-| `admin` | Admin Sarpras |
-| `guru` | Guru |
 | `admin@rekasedia.sch.id` | Admin Sarpras |
 | `sarah.putri@rekasedia.sch.id` | Guru |
 
@@ -135,10 +133,10 @@ File penting:
 
 ## Alur Demo yang Disarankan
 
-1. Login sebagai `guru`.
+1. Login sebagai `sarah.putri@rekasedia.sch.id`.
 2. Buka katalog inventaris.
 3. Tambahkan beberapa barang ke keranjang dan ajukan permintaan.
-4. Logout, lalu login sebagai `admin`.
+4. Logout, lalu login sebagai `admin@rekasedia.sch.id`.
 5. Buka dashboard atau menu permintaan.
 6. Setujui salah satu permintaan.
 7. Cek stok di inventaris admin atau katalog guru.
