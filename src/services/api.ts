@@ -10,10 +10,12 @@ const API_BASE = '/api';
 const USE_MOCK = true; // FORCE MOCK MODE FOR PRESENTATION
 const MOCK_ITEMS_KEY = 'mock_items';
 const MOCK_REQUESTS_KEY = 'mock_requests';
+const MOCK_LOANS_KEY = 'mock_loans';
 
 function getMockStorage() {
   localStorage.removeItem(MOCK_ITEMS_KEY);
   localStorage.removeItem(MOCK_REQUESTS_KEY);
+  localStorage.removeItem(MOCK_LOANS_KEY);
   return sessionStorage;
 }
 
@@ -49,6 +51,15 @@ function readMockRequests() {
 
 function writeMockRequests(requests: any[]) {
   getMockStorage().setItem(MOCK_REQUESTS_KEY, JSON.stringify(requests));
+}
+
+function readMockLoans() {
+  const saved = getMockStorage().getItem(MOCK_LOANS_KEY);
+  return saved ? JSON.parse(saved) : mockData.loans;
+}
+
+function writeMockLoans(loans: any[]) {
+  getMockStorage().setItem(MOCK_LOANS_KEY, JSON.stringify(loans));
 }
 
 function formatMockDate(date: Date) {
@@ -321,7 +332,7 @@ export async function updateRequestStatus(id: number, status: 'APPROVED' | 'REJE
 export async function fetchLoans() {
   if (USE_MOCK) {
     const items = readMockItems();
-    return mockData.loans.map((loan) => {
+    return readMockLoans().map((loan: any) => {
       const item = items.find((inventoryItem: any) => inventoryItem.id === loan.item_id);
       return {
         ...loan,
@@ -336,7 +347,13 @@ export async function fetchLoans() {
 }
 
 export async function returnLoan(id: number) {
-  if (USE_MOCK) return { message: 'Barang dikembalikan (MOCK)' };
+  if (USE_MOCK) {
+    const loans = readMockLoans();
+    writeMockLoans(loans.map((loan: any) => (
+      loan.id === id ? { ...loan, status: 'DIKEMBALIKAN', returned_at: formatMockDate(new Date()) } : loan
+    )));
+    return { message: 'Barang dikembalikan (MOCK)' };
+  }
 
   const res = await fetch(`${API_BASE}/loans/${id}/return`, {
     method: 'PUT',
@@ -372,7 +389,7 @@ export async function fetchStats(): Promise<DashboardStats> {
 
     return {
       totalItems: items.reduce((sum: number, item: any) => sum + item.stock, 0),
-      activeLoans: mockData.loans.filter((loan) => loan.status === 'DIPINJAM').length,
+      activeLoans: readMockLoans().filter((loan: any) => loan.status === 'DIPINJAM').length,
       pendingRequests: requests.filter((request: any) => request.status === 'PENDING').length,
       todayRequests: requests.filter((request: any) => isToday(request.request_date)).length,
       criticalStockCount: criticalItems.length,
@@ -401,14 +418,15 @@ export interface TeacherStats {
 
 export async function fetchTeacherStats(userId: number): Promise<TeacherStats> {
   if (USE_MOCK) {
-    const userLoans = mockData.loans.filter(l => l.borrower_id === userId);
+    const userLoans = readMockLoans().filter((loan: any) => loan.borrower_id === userId);
     const userRequests = readMockRequests().filter((request: any) => request.requester_id === userId);
+    const completedRequests = userRequests.filter((request: any) => request.status !== 'PENDING');
 
     return {
       totalItemsRequested: userRequests.reduce((sum: number, request: any) => sum + request.quantity, 0),
-      activeLoansCount: userLoans.filter(l => l.status === 'DIPINJAM').length,
+      activeLoansCount: userLoans.filter((loan: any) => loan.status === 'DIPINJAM').length,
       pendingRequestsCount: userRequests.filter((request: any) => request.status === 'PENDING').length,
-      historyCount: userRequests.length + userLoans.length
+      historyCount: userLoans.length + completedRequests.length
     };
   }
   // In real backend, this would be a filtered endpoint
