@@ -25,12 +25,18 @@ function readMockRequests() {
   const baseRequests = saved ? JSON.parse(saved) : mockData.requests;
 
   return baseRequests.map((request: any) => {
-    if (request.requester_id) return request;
+    if (request.requester_id) {
+      return {
+        ...request,
+        request_date: normalizeMockDate(request.request_date),
+      };
+    }
 
     const matchedUser = mockData.users.find((user) => user.full_name === request.requester_name);
     return {
       ...request,
       requester_id: matchedUser?.id || 6,
+      request_date: normalizeMockDate(request.request_date),
     };
   });
 }
@@ -43,8 +49,54 @@ function formatMockDate(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+function parseMockDate(dateValue: string) {
+  const parsed = new Date(dateValue);
+  if (!Number.isNaN(parsed.getTime())) return parsed;
+
+  const match = dateValue.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (!match) return null;
+
+  const monthMap: Record<string, number> = {
+    jan: 0,
+    januari: 0,
+    feb: 1,
+    februari: 1,
+    mar: 2,
+    maret: 2,
+    apr: 3,
+    april: 3,
+    mei: 4,
+    jun: 5,
+    juni: 5,
+    jul: 6,
+    juli: 6,
+    agu: 7,
+    agustus: 7,
+    sep: 8,
+    september: 8,
+    okt: 9,
+    oktober: 9,
+    nov: 10,
+    november: 10,
+    des: 11,
+    desember: 11,
+  };
+
+  const [, day, monthName, year] = match;
+  const month = monthMap[monthName.toLowerCase()];
+  if (month === undefined) return null;
+
+  return new Date(Number(year), month, Number(day));
+}
+
+function normalizeMockDate(dateValue: string) {
+  const parsed = parseMockDate(dateValue);
+  return parsed ? formatMockDate(parsed) : dateValue;
+}
+
 function isToday(dateValue: string) {
-  return formatMockDate(new Date(dateValue)) === formatMockDate(new Date());
+  const parsed = parseMockDate(dateValue);
+  return parsed ? formatMockDate(parsed) === formatMockDate(new Date()) : false;
 }
 
 // --- Helper: get token dari localStorage ---
